@@ -198,8 +198,8 @@ gain and loss of DNA regions. \emph{Bioinformatics}, \bold{20}:
 3413--3422. 
 
 
-  Lingjærde OC, Baumbusch LO, Liestøl K, Glad I,
-Børresen-Dale AL. (2005). CGH-Explorer: a program for analysis of
+  Lingjaerde OC, Baumbusch LO, Liestol K, Glad I,
+Borresen-Dale AL. (2005). CGH-Explorer: a program for analysis of
 CGH-data. \emph{Bioinformatics}, \bold{21}: 821--822.
 
 
@@ -281,6 +281,9 @@ Parallelization and other modifications and additions are by Ramon Diaz-Uriarte 
 \dontrun{
 setwd("/tmp/o3") ## all slaves need a common dir to read and write.
 mpiInit()}
+
+## library(Rmpi)
+## try(mpi.spawn.Rslaves(nslaves = 1), silent = TRUE)
 
 data(cghE1)
 tmpchr <- sub("chr", "", cghE1$Chromosome)
