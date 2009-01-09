@@ -10,6 +10,9 @@ if(exists(".__ADaCGH_WEB_APPL", env = .GlobalEnv)) {
 ## functions, such as changepoints. If things do not work, check
 ## arguments of functions match.
 
+
+
+
 names.formals.changepoints <- c("genomdat",
                                 "data.type",
                                 "alpha",
@@ -28,15 +31,31 @@ names.formals.changepoints <- c("genomdat",
                                 "ngrid",
                                 "tol")
 
-if(!identical(names.formals.changepoints, names(formals(changepoints)))) {
-    m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
-    m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
-    m3 <- "If your version is newer than 1.16.0, please let us know of this problem.\n"
-    m4 <- "We are assuming you are using DNAcopy version 1.16.0,\n"
-    m5 <- "the one for the current stable BioConductor release (v. 2.3).\n"
-    m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
-    mm <- paste(m1, m2, m3, m4, m5, m6)
-    stop(mm)
+
+vDNAcopy <- package_version(packageDescription("DNAcopy")$Version)
+if (vDNAcopy >= "1.17.1")
+  {
+    cat("Setting adacgh_changepoints to DNAcopy:::changepoints\n")
+    adacgh_changepoints <- DNAcopy:::changepoints
+    cat("Setting adacgh_trimmed.variance to DNAcopy:::trimmed.variance\n")
+    adacgh_trimmed.variance <- DNAcopy:::trimmed.variance
+  } else {
+    cat("Setting adacgh_changepoints to changepoints\n")
+    adacgh_changepoints <- changepoints
+    cat("Setting adacgh_trimmed.variance to trimmed.variance\n")
+    adacgh_trimmed.variance <- trimmed.variance
+  }
+
+
+if(!identical(names.formals.changepoints, names(formals(adacgh_changepoints)))) {
+  m1 <- "Arguments to DNAcopy function changepoints have changed.\n"
+  m2 <- "Either your version of DNAcopy is newer than ours, or older.\n"
+  m3 <- "If your version is different from 1.16.0 or 1.17.1,\n please let us know of this problem.\n"
+  m4 <- "We are assuming you are using DNAcopy version 1.16.0 or 1.17.1,\n"
+  m5 <- "the one for the current stable BioConductor release (v. 2.3)\n and the devel releas (v. 2.4).\n"
+  m6 <- paste("Your version of DNAcopy is ", packageDescription("DNAcopy")$Version, ".\n")
+  mm <- paste(m1, m2, m3, m4, m5, m6)
+  stop(mm)
 }
 
 ## where do we live? to call the python script
@@ -82,7 +101,9 @@ mpiInit <- function(wdir = getwd(), minUniverseSize = 15,
 
 
 pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
-    if (parall == "auto")
+  stop.na.inf(x)
+  stop.na.inf(chrom.numeric)
+  if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "axc", "chr")
     if (parall == "chr") {
         cat("\n    running chr version \n")
@@ -97,7 +118,9 @@ pSegmentACE <- function(x, chrom.numeric, parall = "auto", ...) {
 }
 
 pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
-    if (parall == "auto") parall <- "arr"
+  stop.na.inf(x)
+  stop.na.inf(chrom.numeric)
+  if (parall == "auto") parall <- "arr"
     if (parall == "arr") {
         cat("\n    running arr version \n")
         return(pSegmentHMM_A(x, chrom.numeric, ...))
@@ -110,8 +133,8 @@ pSegmentHMM <- function(x, chrom.numeric, parall = "auto", ...) {
 
 
 pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
-    nsample <- ncol(x)
-    nchrom <- unique(chrom.numeric)
+  nsample <- ncol(x)
+  nchrom <- unique(chrom.numeric)
     datalist <- list()
     klist <- 1
     for(i in 1:nsample) {
@@ -141,6 +164,9 @@ pSegmentHMM_axc<- function(x, chrom.numeric, ...) {
 
 
 pSegmentGLAD <- function(x, chrom.numeric, ...) {
+  stop.na.inf(x)
+  stop.na.inf(chrom.numeric)
+
     require("GLAD") || stop("Package not loaded: GLAD")
     out <- papply(data.frame(x),
                   function(z) gladWrapper(z,
@@ -157,6 +183,10 @@ pSegmentGLAD <- function(x, chrom.numeric, ...) {
 
 
 pSegmentBioHMM <- function(x, chrom.numeric, Pos, parall = "auto", ...) {
+  stop.na.inf(x)
+  stop.na.inf(chrom.numeric)
+  stop.na.inf(Pos)
+
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 110, "arr", "axc")
     if (parall == "arr") {
@@ -219,6 +249,9 @@ pSegmentBioHMM_axc <- function(x, chrom.numeric, Pos, ...) {
 
 
 pSegmentCGHseg <- function(x, chrom.numeric, CGHseg.thres, ...) {
+  stop.na.inf(x)
+  stop.na.inf(chrom.numeric)
+
     ## Beware: we parallelize over subjects
  
 ##    nsample <- ncol(x)
@@ -259,7 +292,9 @@ pSegmentPSW <- function(x, chrom.numeric, common.data,
                         sign = -1,
                         nIter = 1000, prec = 100,  p.crit = 0.10,
                         name = NULL, ...) {
-    numarrays <- ncol(x)
+  stop.na.inf(chrom.numeric)
+  stop.na.inf(x)
+  numarrays <- ncol(x)
     ncrom <- length(unique(chrom.numeric))
     out <- list()
     ## out$Data
@@ -336,6 +371,9 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
                              minDiff = 0.25,
                              minMergeDiff = 0.05,
                              thrLvl = 3, initClusterLevels = 10, ...) {
+  stop.na.inf(chrom.numeric)
+  stop.na.inf(x)
+
 ##     ncloneschrom <- tapply(x[, 1], chrom.numeric, function(x) length(x))
 ##     if((thrLvl == 3) & ((max(ncloneschrom) > 1096) | (min(ncloneschrom) < 21)))
 ##         warningsForUsers <-
@@ -413,6 +451,9 @@ pSegmentWavelets <- function(x, chrom.numeric, mergeSegs = TRUE,
 
 
 pSegmentDNAcopy <- function(x, chrom.numeric, parall = "arr", ...) {
+  stop.na.inf(chrom.numeric)
+  stop.na.inf(x)
+
     if (parall == "auto")
         parall <- ifelse(ncol(x) > 75, "arr", "axc")
     if (parall == "arr") {
@@ -499,6 +540,7 @@ pSegmentDNAcopy_axc <- function(x, chrom.numeric, smooth = TRUE,
         datalist[[i]]$logr <- x[, i]
         datalist[[i]]$pred <- matout0[, i]
     }
+    ### FIXME: eh???? we always merge here!!!!!
     out <- papply(datalist, function(z) ourMerge(z$logr, z$pred))
     outl <- list()
     outl$segm <- out
@@ -697,38 +739,43 @@ SegmentPlotWrite <- function(data, chrom,
     numarrays <- ncol(data)
     
     fseg <- get(paste("pSegment", method, sep = ""))
-    trythis <- try(
+    trySegment <- try(
                    segmres <- fseg(data, chrom,
                                    Pos = Pos,
                                    mergeSegs = mergeSegs, ...)
                    )
-    if(inherits(trythis, "try-error"))
-        caughtOurError(trythis)
+    seg1 <<- segmres
+    if(inherits(trySegment, "try-error"))
+        caughtOurError(trySegment)
     cat("\n\n Segmentation done \n\n")
 
     save.image()
     save(segmres, file = "segmres.RData")
 
-    trythis <- try(doMCR(segmres$segm, chrom.numeric = chrom,
+    tryMCR <- try(doMCR(segmres$segm, chrom.numeric = chrom,
                          data = data,
                          Pos = Pos, ...))
-    if(inherits(trythis, "try-error"))
-        caughtOurError(trythis)
-    
-    trythis <- try(segmentPlot(segmres,
+    if(inherits(tryMCR, "try-error"))
+        caughtOurError(tryMCR)
+    if(inherits(segmres, "DNAcopy") & (mergeSegs == FALSE)) {
+      class(segmres) <- c(class(segmres), "adacgh.generic.out")
+      warning("Forcing plotting of DNAcopy object with merge = FALSE.",
+              " But this might not be what you want.")
+    }
+    tryPlot <- try(segmentPlot(segmres,
                                geneNames = geneNames,
                                chrom.numeric = chrom,
                                cghdata = data,
                                idtype = idtype,
                                organism = organism))
-    if(inherits(trythis, "try-error"))
-        caughtOurError(trythis)
+    if(inherits(tryPlot, "try-error"))
+        caughtOurError(tryPlot)
     cat("\n\n Plotting done \n\n")
 
-    trythis <- try(writeResults(segmres,
+    tryWrite <- try(writeResults(segmres,
                                 data, commondata))
-    if(inherits(trythis, "try-error"))
-        caughtOurError(trythis)
+    if(inherits(tryWrite, "try-error"))
+        caughtOurError(tryWrite)
 }                                
 
 
@@ -1427,7 +1474,7 @@ internalSmoothCNA <- function(genomdat,
     ## a single array *chromosome and to be parallelized and fed to internalDNAcopy
    cat("\n      Starting smoothing \n")
     ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
-   trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
+   trimmed.SD <- sqrt(adacgh_trimmed.variance(genomdat[ina], trim))
    outlier.SD <- outlier.SD.scale * trimmed.SD
    smooth.SD <- smooth.SD.scale * trimmed.SD
    k <- smooth.region
@@ -1482,8 +1529,8 @@ internalDNAcopy <- function(acghdata,
         stop("Either an NA or an infinite in the data")
 
     genomdati <- genomdati[ina]
-    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
-    segci <- changepoints(genomdati, data.type = "logratio",
+    trimmed.SD <- sqrt(adacgh_trimmed.variance(genomdati, trim))
+    segci <- adacgh_changepoints(genomdati, data.type = "logratio",
                           alpha = alpha, sbdry = sbdry, sbn = sbn,
                           nperm = nperm, p.method = p.method,
                           ##                               window.size = window.size, 
@@ -3257,7 +3304,7 @@ plot.cw.superimpA <- function(res, chrom,
         datalist[[cnum]]$indexchr <- indexchr
         datalist[[cnum]]$cnum <- cnum
         datalist[[cnum]]$thiscn <- chrom.nums[cnum]
-        datalist[[cnum]]$resl <- lapply(res, function(w) w[indexchr, ])
+        datalist[[cnum]]$resl <- lapply(res, function(w) w[indexchr, , drop = FALSE])
         if(!is.null(geneLoc))
             datalist[[cnum]]$posn <- geneLoc[indexchr]
         else
@@ -3276,6 +3323,7 @@ plot.cw.superimpA <- function(res, chrom,
         environment(mapChromOpenA) <- environment()
         im2 <- mapChromOpenA()
         nfig <- 1
+##        browser()
         for(arraynum in 1:arraynums) { ## first, plot the points
             logr <- z$resl[[arraynum]][, 1]
             res.dat <- z$resl[[arraynum]][, 3]
@@ -4063,7 +4111,7 @@ pSegmentDNAcopy_A <- function(x, chrom.numeric, mergeSegs = TRUE, smooth = TRUE,
     outl <- list()
     outl$segm <- papout
     outl$chrom.numeric <- chrom.numeric
-    class(outl) <- "DNAcopy"
+    class(outl) <- "DNAcopy" ## why not adacgh.generic.out if not mergeSegs?? FIXME!!!
     if(mergeSegs) class(outl) <- c(class(outl), "adacgh.generic.out")
     return(outl)
 }
@@ -4080,7 +4128,7 @@ internalSmoothCNA_A <- function(acghdata, chrom.numeric,
     uchrom <- unique(chrom)
     genomdat <- acghdata
     ina <- which(!is.na(genomdat) & !(abs(genomdat) == Inf))
-    trimmed.SD <- sqrt(trimmed.variance(genomdat[ina], trim))
+    trimmed.SD <- sqrt(adacgh_trimmed.variance(genomdat[ina], trim))
     outlier.SD <- outlier.SD.scale * trimmed.SD
     smooth.SD <- smooth.SD.scale * trimmed.SD
     
@@ -4144,7 +4192,7 @@ internalDNAcopy_A <- function(acghdata,
         stop("Either an NA or an infinite in the data")
 
     genomdati <- genomdati[ina]
-    trimmed.SD <- sqrt(trimmed.variance(genomdati, trim))
+    trimmed.SD <- sqrt(adacgh_trimmed.variance(genomdati, trim))
     chromi <- chrom.numeric[ina]
     sample.lsegs <- NULL
     sample.segmeans <- NULL
@@ -4153,7 +4201,7 @@ internalDNAcopy_A <- function(acghdata,
     for (ic in uchrom) {
 ##         cat("\n DEBUG: internalDNAcopy_A: before changepoints \n")
 ##         browser()
-        segci <- changepoints(genomdati[chromi==ic],
+        segci <- adacgh_changepoints(genomdati[chromi==ic],
                               data.type = "logratio",
                               alpha = alpha, sbdry = sbdry, sbn = sbn,
                               nperm = nperm, p.method = p.method,
@@ -4245,3 +4293,176 @@ ACE_C <- function(x, Chrom, coefs = file.aux, Sdev=0.2, echo=FALSE) {
         res$chrom.numeric <- Chrom
  	invisible(res)
  }
+
+
+
+#### Utility functions
+
+stop.na.inf <- function(x) {
+  ## The code for many functions allows for dealing with NA and Inf, but
+  ## would need to adjust other functions (as different arrays would have
+  ## different length of pos, genenames, etc. So for now stop
+  if(any(is.na(x)) | any(is.infinite(x)))
+        stop("Either an NA or an infinite in the data: ",
+             deparse(substitute(x)), ".\n",
+             "   Eliminate those values or use imputation")
+}
+
+
+### Example of usage. Suppose we create missing values
+
+## cghE1[1:10, 5:7] <- NA
+## imputed.x <- my.impute.lowess(cghE1[1:40, 5:7], rep(1, 40))
+
+
+my.impute.lowess <- function (x,
+                              chrom.numeric,
+                              Clone = NULL,
+                              Pos = NULL,
+                              chrominfo = human.chrom.info.Jul03,
+                              maxChrom = 23,
+                              smooth = 0.1)
+{
+  ## BEWARE: Pos MUST be in kilobases!!!
+  if(is.null(Clone)) Clone <- 1:length(chrom.numeric)
+  if(is.null(Pos)) Pos <- Clone
+  aCGH.obj <- create.aCGH(data.frame(x),
+                          data.frame(Clone = Clone,
+                                     Chrom = chrom.numeric,
+                                     kb = Pos))
+  
+    data.imp <- log2.ratios <- log2.ratios(aCGH.obj)
+    clones.info <- clones.info(aCGH.obj)
+    uniq.chrom <- unique(clones.info$Chrom)
+    for (j in uniq.chrom[uniq.chrom <= maxChrom]) {
+        cat("Processing chromosome ", j, "\n")
+        centr <- chrominfo$centromere[j]
+        indl <- which(clones.info$Chrom == j & clones.info$kb <
+            centr)
+        indr <- which(clones.info$Chrom == j & clones.info$kb >
+            centr)
+        kbl <- clones.info$kb[indl]
+        kbr <- clones.info$kb[indr]
+        for (i in 1:ncol(log2.ratios)) {
+            if (length(indl) > 0) {
+                vecl <- log2.ratios[indl, i]
+                ind <- which(!is.na(vecl))
+                if (length(ind) > 1)
+                  data.imp[indl, i][-ind] <- approx(lowess(kbl[ind],
+                    vecl[ind], f = smooth), xout = kbl[-ind])$y
+            }
+            if (length(indr) > 0) {
+                vecr <- log2.ratios[indr, i]
+                ind <- which(!is.na(vecr))
+                if (length(ind) > 0)
+                  data.imp[indr, i][-ind] <- approx(lowess(kbr[ind],
+                    vecr[ind], f = smooth), xout = kbr[-ind])$y
+            }
+        }
+    }
+    prop.miss <- apply(data.imp, 2, prop.na)
+    if (max(prop.miss, na.rm = TRUE) > 0) {
+        for (i in 1:ncol(data.imp)) {
+            vec <- data.imp[, i]
+            ind <- which(is.na(vec))
+            if (length(ind) > 0) {
+                vec[ind] <- sapply(ind, function(i) {
+                  chr <- clones.info$Chrom[i]
+                  kb <- clones.info$kb[i]
+                  if (kb >= chrominfo$centromere[chr])
+                    median(vec[clones.info$Chrom == chr & clones.info$kb >=
+                      chrominfo$centromere[chr]], na.rm = TRUE)
+                  else median(vec[clones.info$Chrom == chr &
+                    clones.info$kb < chrominfo$centromere[chr]],
+                    na.rm = TRUE)
+                })
+                vec[is.na(vec)] <- 0
+                data.imp[, i] <- vec
+            }
+        }
+    }
+    prop.miss <- apply(data.imp, 2, prop.na)
+    if (max(prop.miss) > 0)
+        print(paste("Missing values still remain in samples ",
+            which(prop.miss > 0)))
+    data.imp
+}
+
+
+
+
+### Simple examples of stochasticity of methods and working of SegmentPlotWrite
+
+### library(ADaCGH)
+### data(cghE1)
+### tmpchr <- sub("chr", "", cghE1$Chromosome)
+### chrom.numeric <- as.numeric(as.character(tmpchr))
+### chrom.numeric[tmpchr == "X"] <- 23
+### chrom.numeric[tmpchr == "Y"] <- 24
+### rm(tmpchr)
+### ### we need the data ordered
+### reorder <- order(chrom.numeric,
+###                  cghE1$UG.Start,
+###                  cghE1$UG.End,
+###                  cghE1$Name)
+### cghE1 <- cghE1[reorder, ]
+### chrom.numeric <- chrom.numeric[reorder]
+
+
+
+### #### DNAcopy: differences between pSegmentDNA and
+### ##   SegmentPlotWrite: because DNAcopy is variable
+### set.seed(1)
+### cna.obj <- CNA(as.matrix(cghE1[, 5:7]),
+###               chrom = chrom.numeric,
+###               maploc = cghE1$UG.Start,
+###               data.type = "logratio")
+### smoothed <- smooth.CNA(cna.obj)
+### segmented1 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented2 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented3 <- segment(smoothed, undo.splits = "none", nperm = 10000)
+### segmented3$output[32:34, ]
+### segmented1$output[32:34, ]
+
+
+### #### HMM: this is highly variable
+
+### Clone <- 1:nrow(cghE1)
+### obj <- create.aCGH(data.frame(cghE1[, 5:7]), 
+###                    data.frame(Clone = Clone,
+###                               Chrom = chrom.numeric,
+###                               kb     = cghE1$UG.Start ))
+### set.seed(1)
+### res <- find.hmm.states(obj, aic = TRUE, bic = FALSE)
+### res2 <- find.hmm.states(obj, aic = TRUE, bic = FALSE)
+
+### res$states.hmm[[1]][1334:1342, 2 + 4]
+### res2$states.hmm[[1]][1334:1342, 2 + 4]
+
+
+
+### ### GLAD: no changes here between SegmentPlotWrite
+### ### and pSegmentGLAD
+### ## Note also that the testAdacghNum.py, with GALD, shows
+### ## perfect 
+
+### oGLAD <- pSegmentGLAD(cghE1[, 5:7],
+###                     chrom.numeric)
+### setwd("/tmp/mG")
+### SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
+###                  Pos = cghE1$UG.Start,
+###                  mergeSegs = FALSE,
+###                  idtype = "ug", organism = "Hs",
+###                  method = "GLAD",
+###                  geneNames = cghE1[, 1], commondata = cghE1[, 1:4])
+
+### spw.out <- read.table("/tmp/mG/GLAD.output.txt")
+
+### summary(oGLAD$segm$S1[, 2] - spw.out$S1.Smoothed)
+### summary(oGLAD$segm$S2[, 2] - spw.out$S2.Smoothed)
+### summary(oGLAD$segm$S3[, 2] - spw.out$S3.Smoothed)
+### summary(oGLAD$segm$S1[, 3] - spw.out$S1.Status)
+### summary(oGLAD$segm$S2[, 3] - spw.out$S2.Status)
+### summary(oGLAD$segm$S3[, 3] - spw.out$S3.Status)
+
+

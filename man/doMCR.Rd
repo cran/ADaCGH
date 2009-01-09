@@ -15,7 +15,10 @@ doMCR(x, chrom.numeric, data, MCR.gapAllowed = 500,
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
-  \item{x}{An object returned by our pSegment* functions, such as \code{\link{pSegmentDNAcopy}}}
+  \item{x}{The "segm" component of an object returned by our pSegment* functions, such as
+    \code{\link{pSegmentDNAcopy}}. For instance
+    \code{whatevername$semg}, where \code{whatevername} is the result of
+    a   previous invocation of \code{pSegment}.}
   \item{chrom.numeric}{See \code{\link{pSegmentDNAcopy}}} 
   \item{data}{The original aCGH data;  genes in rows, subjects or arrays in
     columns. Data should be ordered by chromosome and position within chromosome.}
@@ -33,9 +36,6 @@ doMCR(x, chrom.numeric, data, MCR.gapAllowed = 500,
 \value{
   Used only for its side effects of writing out files.
 }
-
-
-
 
 
 \references{
@@ -57,8 +57,6 @@ adenocarcinoma genome. PNAS, 101: 9067--9072.
 
 \author{Ramon Diaz-Uriarte \email{rdiaz02@gmail.com} }
 \seealso{ \code{\link[cghMCR]{MCR}}}
-\examples{
-}
 % Add one or more standard keywords, see file 'KEYWORDS' in the
 % R documentation directory.
 \keyword{ IO }
