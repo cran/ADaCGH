@@ -40,6 +40,9 @@ web-based application for the analysis of aCGH data. Tech. report.
   sophisticated.}
 \examples{
 \dontrun{
+## all slaves need a common dir to read and write.
+dir.to.create <- tempdir2()
+setwd(dir.to.create)
 mpiInit()
 }
 }

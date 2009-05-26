@@ -7,7 +7,12 @@
 }
 \usage{
 SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
-                 organism, method, geneNames, commondata, ...)
+                 organism, method, geneNames, commondata,
+                 colors = c("orange", "red", "green", "blue", "black"),
+                 html_js = TRUE,
+                 superimp = TRUE,
+                 imgheight = 500,
+                 ...)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -29,7 +34,7 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     corresponding, respectively, to None, Homo sapiens, Mus musculus
     (mouse) and Rattus norvegicus (rat). }
   \item{method}{The segmentation method. One of "ACE", "HMM", "BioHMM",
-    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets".}
+    "GLAD", "DNAcopy", "CGHseg", "PSW", "Wavelets", "HaarSeg".}
   \item{geneNames}{A vector with the names of the genes or probes, as
     you want to use them to label figures and output.}
   \item{commondata}{A data frame with columns that contain the common
@@ -41,6 +46,15 @@ SegmentPlotWrite(data, chrom, mergeSegs, Pos, idtype,
     (often, the mid point or whatever you regard as appropriate
     representative of the "center" of the clone). But you can use
     something else.}
+  \item{colors}{Colors used for plotting: a five element vector denoting
+    colors for non-altered points, gained, lost, the smoothed line and the
+    horizontal line at 0.}
+  \item{html_js}{Produce the html figures including lots of Javascript?
+    Default is TRUE.}
+  \item{superimp}{Produce the figures that superimpose all arrays into a
+    single plot? Default is TRUE.}
+  \item{imgheight}{The image height when generating png. Default is 500.}
+
   \item{\dots}{Additional arguments passed to the underlying pSegment*
     and segmentPlot functions.}
 }
@@ -71,7 +85,11 @@ Just a convenience wrapper.
 \dontrun{
 ## This will not work unless you have a working Python installation
 
-setwd("/tmp/o3") ## all slaves need a common dir to read and write.
+##setwd("/tmp/o3") ## all slaves need a common dir to read and write.
+## all slaves need a common dir to read and write.
+dir.to.create <- tempdir2()
+setwd(dir.to.create)
+dir.to.create
 mpiInit()
 
 data(cghE1)
@@ -88,6 +106,11 @@ cghE1 <- cghE1[reorder, ]
 chrom.numeric <- chrom.numeric[reorder]
 
 
+## to make it run fuster, use just the first two chromosomes
+si <- cumsum(table(chrom.numeric))[2]
+cghE1 <- cghE1[1:si, ]
+chrom.numeric <- chrom.numeric[1:si]
+
 
 ## one example
 SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
@@ -99,11 +122,12 @@ SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
 
 
 
-## all other methods except PSW and ACE
-for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
+## all other methods except PSW and ACE and BioHMM (this fails because
+## of a problem in the library)
+for(mm in c("DNAcopy", "GLAD", "HMM", "CGHseg", "HaarSeg")) {
 
     cat("\n\n mm is ", mm, "\n\n")
-    SegmentPlotWrite(cghE1[, 5:7], chrom.numeric,
+    SegmentPlotWrite(cghE1[, 5:6], chrom.numeric,
                      merge = TRUE, Pos = cghE1$UG.Start,
                      idtype = "ug", organism = "Hs",
                      method = mm,
@@ -111,7 +135,14 @@ for(mm in c("DNAcopy", "GLAD", "HMM", "BioHMM", "CGHseg")) {
                      commondata = cghE1[, 1:4])
 }
 
+## Now try BioHMM
 
+try(SegmentPlotWrite(cghE1[, 5:6], chrom.numeric,
+                     merge = TRUE, Pos = cghE1$UG.Start,
+                     idtype = "ug", organism = "Hs",
+                     method = "BioHMM",
+                     geneNames = cghE1[, 1],
+                     commondata = cghE1[, 1:4]))
 }
 
 }

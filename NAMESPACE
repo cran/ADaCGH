@@ -1,4 +1,5 @@
-useDynLib(ADaCGH)
+useDynLib(ADaCGH, aceAnalysis, ad_rConvAndPeak, ad_rPulseConv,
+          ad_rWConvAndPeak, ad_rThresAndUnify)
 
 export("mpiInit",
        "pSegmentDNAcopy",
@@ -9,10 +10,12 @@ export("mpiInit",
        "pSegmentBioHMM",
        "pSegmentGLAD",
        "pSegmentCGHseg",
+       "pSegmentHaarSeg",
        "segmentPlot",
        "writeResults",
        "SegmentPlotWrite",
-       "doMCR")
+       "doMCR",
+       "tempdir2")
 
 
 
@@ -27,6 +30,7 @@ S3method(writeResults, adacghGLAD)
 S3method(writeResults, CGHseg)
 S3method(writeResults, mergedHMM)
 S3method(writeResults, mergedBioHMM)
+S3method(writeResults, adacghHaarSeg)
 
 
 
